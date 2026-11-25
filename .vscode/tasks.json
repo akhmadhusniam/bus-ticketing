@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Laravel: serve",
+      "type": "shell",
+      "command": "php artisan serve",
+      "problemMatcher": []
+    },
+    {
+      "label": "MySQL: impor database/schema.sql",
+      "type": "shell",
+      "command": "mysql -u root -p < database/schema.sql",
+      "problemMatcher": []
+    },
+    {
+      "label": "MySQL: impor database/seed.sql",
+      "type": "shell",
+      "command": "mysql -u root -p < database/seed.sql",
+      "problemMatcher": []
+    },
+    {
+      "label": "Laravel: lepas booking kedaluwarsa",
+      "type": "shell",
+      "command": "php artisan bookings:release-expired",
+      "problemMatcher": []
+    },
+    {
+      "label": "Vite: dev",
+      "type": "shell",
+      "command": "npm run dev",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

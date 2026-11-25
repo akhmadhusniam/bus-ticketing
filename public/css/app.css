@@ -1,0 +1,71 @@
+:root {
+  --primary: #1d4ed8;
+  --primary-dark: #1e40af;
+  --accent: #f59e0b;
+  --text: #0f172a;
+  --muted: #64748b;
+  --bg: #ffffff;
+  --bg-alt: #f1f5f9;
+  --border: #e2e8f0;
+  --danger-bg: #fef2f2;
+  --danger: #b91c1c;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); line-height: 1.5; }
+a { color: var(--primary); }
+.container { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+.muted { color: var(--muted); }
+
+/* header & footer */
+.site-header { border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+.brand { font-weight: 800; font-size: 1.25rem; color: var(--primary); text-decoration: none; }
+.site-header nav a { margin-left: 20px; text-decoration: none; color: var(--text); font-weight: 500; }
+.site-header nav a:hover { color: var(--primary); }
+.site-footer { padding: 28px 0; background: var(--bg-alt); color: var(--muted); font-size: .9rem; text-align: center; }
+
+/* hero & search */
+.hero { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; padding: 56px 0 72px; }
+.hero h1 { margin: 0 0 8px; font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.15; }
+.lead { margin: 0 0 28px; font-size: 1.1rem; opacity: .92; }
+.search-card { background: var(--bg); color: var(--text); border-radius: var(--radius); padding: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, .25); }
+.search-grid { display: grid; grid-template-columns: 1fr auto 1fr 1fr .6fr; gap: 12px; align-items: end; margin-bottom: 16px; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); }
+.field select, .field input { height: 46px; padding: 0 12px; font-size: 1rem; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+.field select:focus, .field input:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.swap { height: 46px; width: 46px; border: 1px solid var(--border); background: var(--bg-alt); border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: var(--primary); }
+.swap:hover { background: var(--border); }
+.btn { width: 100%; height: 50px; border: 0; border-radius: 8px; background: var(--accent); color: #1f2937; font-size: 1.05rem; font-weight: 700; cursor: pointer; }
+.btn:hover { filter: brightness(.95); }
+.alert { background: var(--danger-bg); color: var(--danger); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: .92rem; }
+.alert ul { margin: 0; padding-left: 18px; }
+
+/* sections */
+.section { padding: 48px 0; }
+.section.alt { background: var(--bg-alt); }
+.section h2 { margin: 0 0 20px; font-size: 1.5rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { padding: 8px 16px; border: 1px solid var(--border); border-radius: 999px; text-decoration: none; color: var(--text); background: var(--bg); }
+.chip:hover { border-color: var(--primary); color: var(--primary); }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.step { background: var(--bg); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); }
+.step h3 { margin: 10px 0 4px; font-size: 1.05rem; }
+.step p { margin: 0; color: var(--muted); font-size: .95rem; }
+.num { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; }
+
+/* halaman biasa */
+.page { padding: 40px 20px; }
+.card { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin: 20px 0; }
+
+/* responsif */
+@media (max-width: 860px) {
+  .search-grid { grid-template-columns: 1fr 1fr; }
+  .swap { display: none; }
+  .steps { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .search-grid, .steps { grid-template-columns: 1fr; }
+  .hero { padding: 36px 0 48px; }
+}
