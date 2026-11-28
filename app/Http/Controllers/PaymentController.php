@@ -60,7 +60,7 @@ class PaymentController extends Controller
             'booking'     => $booking,
             'methods'     => self::METHODS,
             'secondsLeft' => max(0, (int) $booking->expires_at->diffInSeconds(now())),
-            'backUrl'     => route('booking.show', $booking->trip_id),
+            'backUrl'     => route('booking.show', ['trip' => $booking->trip_id] + $this->bookingParams($booking)),
         ]);
     }
 
@@ -119,6 +119,21 @@ class PaymentController extends Controller
         $code = strtoupper(preg_replace('/\s+/', '', $code) ?: '');
 
         return Booking::where('code', $code)->firstOrFail();
+    }
+
+    /** @return array<string, mixed> */
+    private function bookingParams(Booking $booking): array
+    {
+        $trip = $booking->trip;
+        $timezone = $trip->route->origin?->timezone ?: env('APP_DISPLAY_TIMEZONE', 'Asia/Jakarta');
+
+        return [
+            'origin'      => $trip->route->origin_city_id,
+            'destination' => $trip->route->destination_city_id,
+            'date'        => $trip->departure_at->copy()->setTimezone($timezone)->toDateString(),
+            'passengers'  => max(1, $booking->passengers->count()),
+            'mode'        => $trip->bus->service_mode,
+        ];
     }
 
     /** @return array{code:string, email:string} */

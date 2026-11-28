@@ -16,13 +16,9 @@
         <div class="alert" role="alert" data-toast-source="error">{{ session('error') }}</div>
     @endif
 
-    <p><a href="{{ $backUrl }}">&larr; Ubah pesanan</a></p>
+    <p><a href="{{ $backUrl }}">&larr; Kembali ke pilih kursi</a></p>
 
-    <ol class="steps" aria-label="Langkah pemesanan">
-        <li class="is-done"><span>1</span> Pilih kursi &amp; data penumpang</li>
-        <li class="is-active"><span>2</span> Pembayaran</li>
-        <li><span>3</span> E-tiket</li>
-    </ol>
+    <x-flow-stepper :current="4" />
 
     <div class="detail-header">
         <div>

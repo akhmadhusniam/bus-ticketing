@@ -22,6 +22,8 @@ class BookingFlowTest extends TestCase
             ->assertOk()
             ->assertSee('1A')
             ->assertSee('Pilih kursi')
+            ->assertSee('Langkah 3 dari 5', false)
+            ->assertSee('aria-current="step"', false)
             ->assertSee('Keterangan status kursi', false)
             ->assertSee('Denah ilustratif', false)
             ->assertSee('Depan bus', false)
@@ -56,6 +58,8 @@ class BookingFlowTest extends TestCase
         $this->followingRedirects()
             ->get(route('payment.show', $booking->code))
             ->assertOk()
+            ->assertSee('Langkah 4 dari 5', false)
+            ->assertSee('Kembali ke pilih kursi')
             ->assertSee('QRIS');
     }
 
@@ -85,6 +89,7 @@ class BookingFlowTest extends TestCase
             ->get(route('ticket.show', ['code' => $booking->code]))
             ->assertOk()
             ->assertSee($booking->code)
+            ->assertSee('Langkah 5 dari 5', false)
             ->assertSee('Penumpang Satu');
     }
 

@@ -73,9 +73,19 @@ class TicketLookupController extends Controller
         $payment = $booking->payments->firstWhere('status', 'paid')
             ?? $booking->payments->sortByDesc('id')->first();
 
+        $trip = $booking->trip;
+        $timezone = $trip->route->origin?->timezone ?: env('APP_DISPLAY_TIMEZONE', 'Asia/Jakarta');
+
         return view('tickets.show', [
-            'booking' => $booking,
-            'payment' => $payment,
+            'booking'   => $booking,
+            'payment'   => $payment,
+            'searchUrl' => route('search', [
+                'origin'      => $trip->route->origin_city_id,
+                'destination' => $trip->route->destination_city_id,
+                'date'        => $trip->departure_at->copy()->setTimezone($timezone)->toDateString(),
+                'passengers'  => max(1, $booking->passengers->count()),
+                'mode'        => $trip->bus->service_mode,
+            ]),
         ]);
     }
 

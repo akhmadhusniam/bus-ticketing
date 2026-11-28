@@ -37,9 +37,19 @@
         <div class="alert alert-success" role="status" data-toast-source="success">{{ session('status') }}</div>
     @endif
 
+    @php
+        $stepCurrent = $booking->status === 'paid' ? 5 : 4;
+    @endphp
+
+    <p><a href="{{ route('ticket.lookup') }}">&larr; Cek tiket lain</a></p>
+    @if ($searchUrl ?? null)
+        <p class="muted small"><a href="{{ $searchUrl }}">Lihat jadwal serupa</a></p>
+    @endif
+
+    <x-flow-stepper :current="$stepCurrent" :payment-done="$booking->status === 'paid'" />
+
     <div class="ticket-top">
         <div>
-            <p><a href="{{ route('ticket.lookup') }}">&larr; Cek tiket lain</a></p>
             <h1>E-tiket</h1>
             <p class="muted">Kode booking <strong>{{ $booking->code }}</strong></p>
         </div>

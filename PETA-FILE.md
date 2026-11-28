@@ -47,9 +47,10 @@ Ringkasan cepat letak fitur dan berkas yang paling sering disentuh. Struktur Lar
 | `resources/views/routes/show.blade.php` | Halaman rute dengan jadwal bus/shuttle, kapasitas, dan tautan detail yang membawa `mode`. |
 | `resources/views/trips/show.blade.php` | Detail trip dengan badge moda, kapasitas, dan kursi tersedia. |
 | `resources/views/trips/booking.blade.php` | Denah skematis sesuai kapasitas (depan/belakang, gang, dek/baris), checkbox `seats[]` sebagai source of truth, form penumpang, titik naik/turun. |
-| `resources/views/tickets/payment.blade.php` | Metode bayar dan countdown 15 menit. |
-| `resources/views/tickets/show.blade.php` | E-tiket cetak. |
-| `public/css/app.css` | Satu-satunya sumber token desain (`:root`, termasuk `--seat-tracks`) dan komponen CSS: `.btn`, `.card`, `.badge`, `.status`, `.seat-*`, `.bus-map`, `.bus-front`, `.bus-aisle`, `.bus-rear`, `.payment-*`, `.booking-layout`, `.page-skeleton`, `.toast`. |
+| `resources/views/components/flow-stepper.blade.php` | Komponen stepper 5 langkah bersama (Cari → Detail → Kursi → Pembayaran → E-tiket), lengkap dengan `aria-current` dan state teks. |
+| `resources/views/tickets/payment.blade.php` | Metode bayar, countdown 15 menit, dan stepper langkah 4. |
+| `resources/views/tickets/show.blade.php` | E-tiket cetak dengan stepper langkah 5 (atau 4 bila belum lunas). |
+| `public/css/app.css` | Satu-satunya sumber token desain (`:root`, termasuk `--seat-tracks`) dan komponen CSS: `.btn`, `.card`, `.badge`, `.status`, `.seat-*`, `.bus-map`, `.bus-front`, `.bus-aisle`, `.bus-rear`, `.flow-steps`, `.payment-*`, `.booking-layout`, `.page-skeleton`, `.toast`. |
 
 ## Test
 

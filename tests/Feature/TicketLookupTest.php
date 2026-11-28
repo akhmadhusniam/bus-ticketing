@@ -33,6 +33,8 @@ class TicketLookupTest extends TestCase
         ])
             ->assertOk()
             ->assertSee($booking->code)
+            ->assertSee('Langkah 5 dari 5', false)
+            ->assertSee('Lihat jadwal serupa')
             ->assertSee('Penumpang Satu')
             ->assertSee('1A')
             ->assertSee('Lunas');
