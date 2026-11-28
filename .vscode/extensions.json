@@ -4,7 +4,6 @@
     "onecentlin.laravel-blade",
     "amiralizadeh9480.laravel-extra-intellisense",
     "editorconfig.editorconfig",
-    "bradlc.vscode-tailwindcss",
     "mikestead.dotenv"
   ]
 }

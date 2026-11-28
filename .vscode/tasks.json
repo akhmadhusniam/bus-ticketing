@@ -8,28 +8,33 @@
       "problemMatcher": []
     },
     {
+      "label": "Setup: localhost Apache",
+      "type": "shell",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./setup-localhost.ps1",
+      "problemMatcher": []
+    },
+    {
       "label": "MySQL: impor database/schema.sql",
       "type": "shell",
-      "command": "mysql -u root -p < database/schema.sql",
+      "command": "Get-Content database/schema.sql -Raw | mysql -u root -p",
       "problemMatcher": []
     },
     {
       "label": "MySQL: impor database/seed.sql",
       "type": "shell",
-      "command": "mysql -u root -p < database/seed.sql",
+      "command": "Get-Content database/seed.sql -Raw | mysql -u root -p",
       "problemMatcher": []
     },
     {
-      "label": "Laravel: lepas booking kedaluwarsa",
+      "label": "Artisan: lepas booking kedaluwarsa",
       "type": "shell",
       "command": "php artisan bookings:release-expired",
       "problemMatcher": []
     },
     {
-      "label": "Vite: dev",
+      "label": "Tests: PHPUnit",
       "type": "shell",
-      "command": "npm run dev",
-      "isBackground": true,
+      "command": "php artisan test",
       "problemMatcher": []
     }
   ]

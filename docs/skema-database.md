@@ -24,6 +24,9 @@ bookings 1─* payments
 | Kursi tertahan | Status `locked` + `locked_until` (15 menit); command per menit melepas yang kedaluwarsa. |
 | Guest checkout | `bookings.user_id` nullable; kontak disimpan langsung di booking. |
 | Audit pembayaran | `payments.payload` menyimpan respons/webhook mentah penyedia. |
+| Idempoten webhook | `UNIQUE (provider, provider_ref)` mencegah pembayaran ganda; `SeatLockService::confirm()` mengunci booking dan aman dipanggil ulang. |
+| Zona waktu | `app.timezone = UTC`, sehingga `now()` menghasilkan UTC sesuai format `DATETIME` di skema. Form memakai `APP_DISPLAY_TIMEZONE` (default `Asia/Jakarta`), sedangkan validasi tanggal memakai `cities.timezone` kota asal. |
+| Transisi booking | `confirm()` pending→paid; `releaseExpired()` pending→expired; `cancel()` →cancelled; `refund()` →refunded sekaligus menandai payment `paid` menjadi `refunded`. Semua lepas/mengunci kursi di dalam transaksi + `lockForUpdate()`. |
 
 ## 3. Contoh format `bus_layouts.seat_map`
 

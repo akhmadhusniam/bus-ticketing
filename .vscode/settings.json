@@ -1,21 +1,25 @@
 {
-  "editor.tabSize": 4,
-  "editor.formatOnSave": true,
-  "files.eol": "\n",
-  "files.insertFinalNewline": true,
-  "files.trimTrailingWhitespace": true,
-  "files.associations": { "*.blade.php": "blade" },
-  "emmet.includeLanguages": { "blade": "html" },
-  "[json]": { "editor.tabSize": 2 },
-  "[javascript]": { "editor.tabSize": 2 },
-  "search.exclude": {
+  "files.exclude": {
     "**/vendor": true,
     "**/node_modules": true,
-    "**/storage/framework": true,
-    "**/bootstrap/cache": true
+    "**/storage/framework/cache": true,
+    "**/storage/framework/sessions": true,
+    "**/storage/framework/views": true,
+    "**/storage/logs": true,
+    "**/.phpunit.cache": true
   },
-  "files.watcherExclude": {
-    "**/vendor/**": true,
-    "**/node_modules/**": true
-  }
+  "search.exclude": {
+    "**/vendor": true,
+    "**/storage/framework/views": true,
+    "**/storage/logs": true,
+    "**/.phpunit.cache": true
+  },
+  "files.associations": {
+    "*.blade.php": "blade"
+  },
+  "editor.rulers": [120],
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "php.suggest.basic": true,
+  "workbench.startupEditor": "none"
 }

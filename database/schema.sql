@@ -95,6 +95,7 @@ CREATE TABLE operators (
   logo_path     VARCHAR(255) NULL,
   contact_email VARCHAR(255) NULL,
   contact_phone VARCHAR(30) NULL,
+  rating        DECIMAL(3,2) NOT NULL DEFAULT 0.00,
   country_id    BIGINT UNSIGNED NULL,
   is_active     TINYINT(1) NOT NULL DEFAULT 1,
   created_at    TIMESTAMP NULL DEFAULT NULL,
@@ -275,6 +276,7 @@ CREATE TABLE payments (
   updated_at   TIMESTAMP NULL DEFAULT NULL,
   PRIMARY KEY (id),
   KEY payments_booking_idx (booking_id),
+  UNIQUE KEY payments_provider_ref_unique (provider, provider_ref),  -- idempoten webhook; NULL diperbolehkan saat payment masih pending
   KEY payments_provider_ref_idx (provider_ref),
   CONSTRAINT payments_booking_fk FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

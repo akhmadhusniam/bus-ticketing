@@ -21,6 +21,7 @@ class Trip extends Model
     protected $casts = [
         'departure_at' => 'datetime',
         'arrival_at'   => 'datetime',
+        'amenities'    => 'array',
     ];
 
     public function route(): BelongsTo

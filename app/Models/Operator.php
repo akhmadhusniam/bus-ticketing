@@ -14,11 +14,15 @@ class Operator extends Model
         'logo_path',
         'contact_email',
         'contact_phone',
+        'rating',
         'country_id',
         'is_active',
     ];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = [
+        'is_active' => 'boolean',
+        'rating'    => 'float',
+    ];
 
     public function country(): BelongsTo
     {
