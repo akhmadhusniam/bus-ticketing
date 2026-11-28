@@ -32,7 +32,7 @@ Ringkasan cepat letak fitur dan berkas yang paling sering disentuh. Struktur Lar
 | Berkas | Fungsi |
 |---|---|
 | `database/schema.sql` | Satu sumber kebenaran skema tabel. |
-| `database/seed.sql` | Data demo: kota, operator, rute, bus, trip, kursi, booking `DEMO2026`. |
+| `database/seed.sql` | Data demo: kota, operator, rute, bus, trip, kursi, booking `DEMO2026`. Jadwal trip diperbarui otomatis saat seed diimpor ulang. |
 | `docs/skema-database.md` | Penjelasan hubungan tabel. |
 
 ## Frontend

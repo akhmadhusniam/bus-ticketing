@@ -152,8 +152,10 @@ setup-localhost.ps1     bantu setup VirtualHost Apache
 
 Data demo yang bisa dipakai:
 
-- Trip bookable: `id=5`, Jakarta → Bandung, **28 November 2026 15:00 WIB**, 4 kursi.
+- Trip bookable: `id=5`, Jakarta → Bandung, **H+1 15:00 WIB** (mengikuti tanggal saat seed diimpor ulang), 4 kursi.
 - Booking sudah lunas: `DEMO2026` / `pemesan@example.com`.
-- Contoh alur: `/trip/5?origin=1&destination=2&date=2026-11-28&passengers=1`.
+- Contoh alur: `/trip/5?origin=1&destination=2&date=2026-11-29&passengers=1` (sesuaikan tanggal setelah import seed).
+
+Import ulang `database/seed.sql` kapan saja untuk menggeser jadwal demo ke tanggal depan. Query memakai `ON DUPLICATE KEY UPDATE` pada tabel `trips`, sehingga booking yang sudah ada tidak dihapus.
 
 Peta berkas ringkas ada di `PETA-FILE.md`. Pengaturan VS Code untuk menyembunyikan folder generated ada di `.vscode/settings.json`.

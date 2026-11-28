@@ -83,7 +83,7 @@ INSERT IGNORE INTO route_stops (id, route_id, bus_stop_id, stop_order, offset_mi
   (5, 3, 1, 1, 0,   1, 0),
   (6, 3, 5, 2, 480, 0, 1);
 
-INSERT IGNORE INTO trips (id, route_id, bus_id, departure_at, arrival_at, base_price, currency, status, created_at, updated_at) VALUES
+INSERT INTO trips (id, route_id, bus_id, departure_at, arrival_at, base_price, currency, status, created_at, updated_at) VALUES
   (1, 1, 1,
    TIMESTAMP(CURDATE(), '23:00:00') - INTERVAL 7 HOUR,
    TIMESTAMP(CURDATE(), '23:00:00') - INTERVAL 7 HOUR + INTERVAL 180 MINUTE,
@@ -103,7 +103,13 @@ INSERT IGNORE INTO trips (id, route_id, bus_id, departure_at, arrival_at, base_p
   (5, 1, 1,
    TIMESTAMP(DATE_ADD(CURDATE(), INTERVAL 1 DAY), '15:00:00') - INTERVAL 7 HOUR,
    TIMESTAMP(DATE_ADD(CURDATE(), INTERVAL 1 DAY), '15:00:00') - INTERVAL 7 HOUR + INTERVAL 180 MINUTE,
-   105000, 'IDR', 'scheduled', NOW(), NOW());
+   105000, 'IDR', 'scheduled', NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  departure_at = VALUES(departure_at),
+  arrival_at   = VALUES(arrival_at),
+  base_price   = VALUES(base_price),
+  status       = VALUES(status),
+  updated_at   = NOW();
 
 INSERT IGNORE INTO trip_seats (id, trip_id, seat_label, deck, price, status, created_at, updated_at) VALUES
   (1,  1, '1A', 1, 95000,  'available', NOW(), NOW()),
