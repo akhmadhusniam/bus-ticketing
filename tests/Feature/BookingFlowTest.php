@@ -22,6 +22,12 @@ class BookingFlowTest extends TestCase
             ->assertOk()
             ->assertSee('1A')
             ->assertSee('Pilih kursi')
+            ->assertSee('Keterangan status kursi', false)
+            ->assertSee('Denah ilustratif', false)
+            ->assertSee('Depan bus', false)
+            ->assertSee('Kapasitas 4 kursi', false)
+            ->assertSee('name="seats[]"', false)
+            ->assertSee('0 dari 4 kursi dipilih', false)
             ->assertSee('Data penumpang')
             ->assertSee('Lanjut ke pembayaran');
     }

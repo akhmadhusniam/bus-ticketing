@@ -10,8 +10,11 @@ Pastikan MySQL/XAMPP aktif, lalu impor skema dan data awal sekali saja:
 
 ```powershell
 Get-Content database/schema.sql -Raw | mysql -u root -p
+Get-Content database/upgrade-service-mode.sql -Raw | mysql -u root bus_ticketing
 Get-Content database/seed.sql -Raw | mysql -u root -p
 ```
+
+Untuk database yang sudah ada, `database/upgrade-service-mode.sql` aman dijalankan ulang untuk menambah kolom/index `buses.service_mode` tanpa `php artisan migrate`.
 
 Buka aplikasi di:
 
@@ -90,6 +93,7 @@ PHPUnit memakai database terpisah `bus_ticketing_test` agar data utama tidak ter
 ```powershell
 & 'C:\xampp\mysql\bin\mysql.exe' -u root -e "CREATE DATABASE IF NOT EXISTS bus_ticketing_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 Get-Content database/schema.sql -Raw | & 'C:\xampp\mysql\bin\mysql.exe' -u root bus_ticketing_test
+Get-Content database/upgrade-service-mode.sql -Raw | & 'C:\xampp\mysql\bin\mysql.exe' -u root bus_ticketing_test
 Get-Content database/seed.sql -Raw | & 'C:\xampp\mysql\bin\mysql.exe' -u root bus_ticketing_test
 php artisan test
 php artisan test --filter=SeatExpiryTest
@@ -120,7 +124,7 @@ app/
   Services/Booking/     SeatLockService (inti booking)
 bootstrap/              app.php, providers.php, cache/
 config/                 konfigurasi Laravel
-database/               schema.sql, seed.sql
+database/               schema.sql, upgrade-service-mode.sql, seed.sql
 docs/                   skema-database.md
 public/                 index.php, .htaccess, css/app.css
 resources/              views/, css/
@@ -138,6 +142,7 @@ setup-localhost.ps1     bantu setup VirtualHost Apache
 ## Catatan arsitektur
 
 - Skema database satu sumber kebenaran: `database/schema.sql`.
+- Kapasitas konsisten: `bus_layouts.total_seats` = jumlah `seat_map.seats` = jumlah `trip_seats` per trip. Switcher Bus/Shuttle menyaring `buses.service_mode`.
 - `SeatLockService` mengunci booking dan kursi dengan `lockForUpdate()` saat reserve/confirm/release/cancel/refund.
 - `payments` memiliki `UNIQUE (provider, provider_ref)` untuk idempotensi webhook.
 - Kode booking dibuat dengan retry agar tidak tabrakan.
@@ -152,9 +157,10 @@ setup-localhost.ps1     bantu setup VirtualHost Apache
 
 Data demo yang bisa dipakai:
 
-- Trip bookable: `id=5`, Jakarta → Bandung, **H+1 15:00 WIB** (mengikuti tanggal saat seed diimpor ulang), 4 kursi.
-- Booking sudah lunas: `DEMO2026` / `pemesan@example.com`.
-- Contoh alur: `/trip/5?origin=1&destination=2&date=2026-11-29&passengers=1` (sesuaikan tanggal setelah import seed).
+- Trip bus bookable: `id=5`, Jakarta → Bandung, **H+1 15:00 WIB**, kapasitas **40 kursi**.
+- Trip shuttle bookable: `id=6`, Jakarta → Bandung, **H+1 17:00 WIB**, kapasitas **14 kursi** (pilih `mode=shuttle`).
+- Booking sudah lunas: `DEMO2026` / `pemesan@example.com` (kursi `L1` pada trip 4).
+- Contoh alur: `/trip/5?origin=1&destination=2&date=2026-11-29&passengers=1&mode=bus` (sesuaikan tanggal setelah import seed).
 
 Import ulang `database/seed.sql` kapan saja untuk menggeser jadwal demo ke tanggal depan. Query memakai `ON DUPLICATE KEY UPDATE` pada tabel `trips`, sehingga booking yang sudah ada tidak dihapus.
 

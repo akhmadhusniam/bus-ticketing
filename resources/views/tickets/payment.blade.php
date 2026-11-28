@@ -13,7 +13,7 @@
 @section('content')
 <section class="container page">
     @if (session('error'))
-        <div class="alert" role="alert">{{ session('error') }}</div>
+        <div class="alert" role="alert" data-toast-source="error">{{ session('error') }}</div>
     @endif
 
     <p><a href="{{ $backUrl }}">&larr; Ubah pesanan</a></p>

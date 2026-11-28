@@ -27,10 +27,14 @@ class RouteLandingController extends Controller
                 'routes.duration_minutes',
                 'routes.distance_km',
                 'operators.name as operator_name',
+                'buses.bus_type',
+                'buses.service_mode',
+                'bus_layouts.total_seats',
             ])
             ->join('routes', 'routes.id', '=', 'trips.route_id')
             ->join('buses', 'buses.id', '=', 'trips.bus_id')
             ->join('operators', 'operators.id', '=', 'buses.operator_id')
+            ->join('bus_layouts', 'bus_layouts.id', '=', 'buses.bus_layout_id')
             ->where('routes.origin_city_id', $origin->id)
             ->where('routes.destination_city_id', $destination->id)
             ->where('routes.is_active', true)

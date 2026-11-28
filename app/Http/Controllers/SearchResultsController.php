@@ -116,6 +116,7 @@ class SearchResultsController extends Controller
                 'operators.name as operator_name',
                 'operators.rating as operator_rating',
                 'buses.bus_type',
+                'buses.service_mode',
                 'buses.amenities',
                 'bus_layouts.name as layout_name',
                 'bus_layouts.total_seats',
@@ -128,6 +129,7 @@ class SearchResultsController extends Controller
             ->where('routes.destination_city_id', $data['destination'])
             ->where('routes.is_active', true)
             ->where('buses.is_active', true)
+            ->where('buses.service_mode', $mode)
             ->where('operators.is_active', true)
             ->where('trips.status', 'scheduled')
             ->where('trips.departure_at', '>=', $start)

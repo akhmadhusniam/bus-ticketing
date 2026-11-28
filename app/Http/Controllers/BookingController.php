@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\SeatUnavailableException;
 use App\Models\Trip;
 use App\Services\Booking\SeatLockService;
+use App\Support\SeatMap;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
@@ -42,16 +43,22 @@ class BookingController extends Controller
             self::MAX_SEATS,
         );
 
+        $seatMap = SeatMap::from($trip->bus->layout, $trip->seats);
+
         return view('trips.booking', [
-            'trip'           => $trip,
-            'boardingStops'  => $stops->where('is_boarding', true)->values(),
-            'droppingStops'  => $stops->where('is_dropping', true)->values(),
-            'seatRows'       => $this->seatRows($trip),
-            'seatColumns'    => max(1, (int) data_get($trip->bus->layout, 'seat_map.cols', 2)),
-            'seatCount'      => $seatCount,
-            'passengerCount' => $wanted,
-            'estimate'       => $available->sortBy('price')->take($wanted)->sum('price'),
-            'backUrl'        => $this->backUrl($trip, $request),
+            'trip'            => $trip,
+            'boardingStops'   => $stops->where('is_boarding', true)->values(),
+            'droppingStops'   => $stops->where('is_dropping', true)->values(),
+            'seatMap'         => $seatMap,
+            'seatColumns'     => $seatMap->columns(),
+            'aisleAfter'      => $seatMap->aisleAfter(),
+            'priceRange'      => $seatMap->priceRange(),
+            'capacity'        => $seatMap->capacity(),
+            'layoutSeatCount' => $seatMap->seatCount(),
+            'seatCount'       => $seatCount,
+            'passengerCount'  => $wanted,
+            'estimate'        => $available->sortBy('price')->take($wanted)->sum('price'),
+            'backUrl'         => $this->backUrl($trip, $request),
         ]);
     }
 
@@ -147,46 +154,6 @@ class BookingController extends Controller
             ->with('status', 'Kursi berhasil dikunci. Selesaikan pembayaran dalam 15 menit.');
     }
 
-    /** @return array<string, array<int, array<string, mixed>>> */
-    private function seatRows(Trip $trip): array
-    {
-        $layoutSeats = collect((array) data_get($trip->bus->layout, 'seat_map.seats', []));
-        $seatByLabel = $trip->seats->keyBy('seat_label');
-
-        $meta = $layoutSeats->isNotEmpty()
-            ? $layoutSeats->map(fn ($seat) => [
-                'label' => (string) ($seat['label'] ?? ''),
-                'row'   => (int) ($seat['row'] ?? 1),
-                'col'   => (int) ($seat['col'] ?? 1),
-                'deck'  => (int) ($seat['deck'] ?? 1),
-            ])
-            : $trip->seats->values()->map(fn ($seat, $index) => [
-                'label' => $seat->seat_label,
-                'row'   => intdiv($index, 4) + 1,
-                'col'   => ($index % 4) + 1,
-                'deck'  => (int) $seat->deck,
-            ]);
-
-        return $meta
-            ->map(function (array $item) use ($seatByLabel) {
-                $seat = $seatByLabel->get($item['label']);
-
-                return [
-                    'label'  => $item['label'],
-                    'row'    => $item['row'],
-                    'col'    => $item['col'],
-                    'deck'   => $item['deck'],
-                    'seat'   => $seat,
-                    'status' => $seat?->status ?? 'blocked',
-                    'price'  => (int) ($seat?->price ?? 0),
-                ];
-            })
-            ->groupBy(fn (array $seat) => $seat['deck'].'-'.$seat['row'])
-            ->sortKeys(SORT_NATURAL)
-            ->map(fn ($row) => $row->sortBy('col')->values()->all())
-            ->all();
-    }
-
     private function backUrl(Trip $trip, Request $request): string
     {
         $params = [];
@@ -198,6 +165,8 @@ class BookingController extends Controller
                 $params[$key] = $value;
             }
         }
+
+        $params['mode'] = $trip->bus->service_mode;
 
         if (isset($params['origin'], $params['destination'], $params['date'])
             && filter_var($params['origin'], FILTER_VALIDATE_INT)

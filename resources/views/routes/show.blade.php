@@ -68,12 +68,15 @@
 
                 <article class="trip-card">
                     <div class="trip-main">
-                        <div class="trip-operator">{{ $trip->operator_name }}</div>
+                        <div class="trip-operator">
+                            {{ $trip->operator_name }}
+                            <span class="badge">{{ $trip->service_mode === 'shuttle' ? 'Shuttle' : 'Bus' }}</span>
+                        </div>
                         <div class="muted small">{{ $depart->translatedFormat('D, d M Y') }}</div>
                         <div class="trip-time">{{ $depart->format('H:i') }} <span>&rarr;</span> {{ $arrive->format('H:i') }}</div>
                         <div class="trip-meta">
                             <span>{{ (int) round($trip->duration_minutes) }} menit</span>
-                            <span>Sisa {{ $trip->available_seats }} kursi</span>
+                            <span>Kapasitas {{ $trip->total_seats }} kursi &middot; Sisa {{ $trip->available_seats }}</span>
                         </div>
                     </div>
                     <div class="trip-side">
@@ -84,6 +87,7 @@
                             'destination' => $destination->id,
                             'date' => $depart->toDateString(),
                             'passengers' => 1,
+                            'mode' => $trip->service_mode,
                         ]) }}">Lihat detail</a>
                     </div>
                 </article>

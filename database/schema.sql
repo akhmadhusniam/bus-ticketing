@@ -123,6 +123,7 @@ CREATE TABLE buses (
   bus_layout_id BIGINT UNSIGNED NOT NULL,
   plate_number  VARCHAR(255) NULL,
   bus_type      ENUM('seater','semi_sleeper','sleeper') NOT NULL,
+  service_mode  ENUM('bus','shuttle') NOT NULL DEFAULT 'bus',
   amenities     JSON NULL,                       -- ["ac","wifi","toilet","charging"]
   is_active     TINYINT(1) NOT NULL DEFAULT 1,
   created_at    TIMESTAMP NULL DEFAULT NULL,
@@ -130,6 +131,7 @@ CREATE TABLE buses (
   PRIMARY KEY (id),
   KEY buses_operator_idx (operator_id),
   KEY buses_layout_idx (bus_layout_id),
+  KEY buses_mode_idx (service_mode, is_active),
   CONSTRAINT buses_operator_fk FOREIGN KEY (operator_id)   REFERENCES operators (id)   ON DELETE CASCADE,
   CONSTRAINT buses_layout_fk   FOREIGN KEY (bus_layout_id) REFERENCES bus_layouts (id)
 ) ENGINE=InnoDB;

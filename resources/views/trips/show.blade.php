@@ -21,7 +21,10 @@
 
     <div class="detail-header">
         <div>
-            <h1>{{ $trip->bus->operator->name }}</h1>
+            <h1>
+                {{ $trip->bus->operator->name }}
+                <span class="badge">{{ $trip->bus->service_mode === 'shuttle' ? 'Shuttle' : 'Bus' }}</span>
+            </h1>
             <p class="muted">{{ $trip->route->origin->name }} &rarr; {{ $trip->route->destination->name }}</p>
         </div>
         <div class="detail-price">
@@ -46,8 +49,8 @@
             <strong>{{ intdiv($duration, 60) }} jam {{ $duration % 60 }} menit</strong>
         </div>
         <div>
-            <span class="muted small">Kursi tersedia</span>
-            <strong>{{ $availableSeats }} kursi</strong>
+            <span class="muted small">Kapasitas kursi</span>
+            <strong>{{ $capacity }} kursi &middot; tersedia {{ $availableSeats }}</strong>
         </div>
     </div>
 

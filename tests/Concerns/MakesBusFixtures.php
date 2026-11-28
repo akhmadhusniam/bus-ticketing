@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
 trait MakesBusFixtures
 {
     /**
-     * @return array{trip: Trip, seat: TripSeat, boarding: BusStop, dropping: BusStop}
+     * @return array{trip: Trip, seats: \Illuminate\Support\Collection, seat: TripSeat, boarding: BusStop, dropping: BusStop}
      */
     private function makeTrip(): array
     {
@@ -56,14 +56,18 @@ trait MakesBusFixtures
         ]);
 
         $layout = BusLayout::create([
-            'name'        => 'Layout Test',
+            'name'        => 'Layout Test 4 kursi',
             'decks'       => 1,
-            'total_seats' => 1,
+            'total_seats' => 4,
             'seat_map'    => [
-                'rows'  => 1,
-                'cols'  => 1,
-                'seats' => [
+                'rows'        => 2,
+                'cols'        => 2,
+                'aisle_after' => 1,
+                'seats'       => [
                     ['label' => '1A', 'row' => 1, 'col' => 1, 'deck' => 1, 'type' => 'regular'],
+                    ['label' => '1B', 'row' => 1, 'col' => 2, 'deck' => 1, 'type' => 'regular'],
+                    ['label' => '2A', 'row' => 2, 'col' => 1, 'deck' => 1, 'type' => 'regular'],
+                    ['label' => '2B', 'row' => 2, 'col' => 2, 'deck' => 1, 'type' => 'regular'],
                 ],
             ],
         ]);
@@ -80,6 +84,7 @@ trait MakesBusFixtures
             'bus_layout_id' => $layout->id,
             'plate_number'  => 'B 1234 TST',
             'bus_type'      => 'seater',
+            'service_mode'  => 'bus',
             'amenities'     => [],
         ]);
 
@@ -118,15 +123,15 @@ trait MakesBusFixtures
             'status'       => 'scheduled',
         ]);
 
-        $seat = TripSeat::create([
+        $seats = collect(['1A', '1B', '2A', '2B'])->map(fn (string $label) => TripSeat::create([
             'trip_id'    => $trip->id,
-            'seat_label' => '1A',
+            'seat_label' => $label,
             'deck'       => 1,
             'price'      => 100000,
             'status'     => 'available',
-        ]);
+        ]));
 
-        return compact('trip', 'seat', 'boarding', 'dropping');
+        return compact('trip', 'seats', 'boarding', 'dropping') + ['seat' => $seats->first()];
     }
 
     /**

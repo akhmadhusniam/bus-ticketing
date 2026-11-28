@@ -164,6 +164,16 @@
             'url'   => $queryUrl(['dropping_stop' => null]),
         ];
     }
+
+    $activeCount = count($activeFilters);
+    $sortLabel = 'Urutkan';
+
+    foreach ($sortOptions as $option) {
+        if ($option['value'] === $filters['sort']) {
+            $sortLabel = $option['label'];
+            break;
+        }
+    }
 @endphp
 
 @section('title', $origin->name.' - '.$destination->name)
@@ -226,9 +236,27 @@
         </div>
     @endif
 
+    <div class="mobile-filter-bar">
+        <span class="mobile-filter-count">{{ $summary['filtered'] }} jadwal</span>
+        <button type="button" class="mobile-filter-chip" data-filter-open data-filter-focus="sort"
+                aria-controls="filter-panel" aria-expanded="false">
+            Urutkan: {{ $sortLabel }}
+        </button>
+        <button type="button" class="mobile-filter-chip mobile-filter-primary" data-filter-open
+                aria-controls="filter-panel" aria-expanded="false">
+            Filter
+            @if ($activeCount > 0)<span class="filter-count">({{ $activeCount }})</span>@endif
+        </button>
+    </div>
+    <div class="filter-backdrop" data-filter-close aria-hidden="true"></div>
+
     <div class="results-layout">
-        <aside class="card filter-card">
+        <aside class="card filter-card" id="filter-panel" aria-label="Filter hasil pencarian">
             <h2>Filter</h2>
+            <div class="filter-drawer-head">
+                <strong>Filter jadwal</strong>
+                <button type="button" class="filter-drawer-close" data-filter-close aria-label="Tutup filter">&times;</button>
+            </div>
             <form method="GET" action="{{ route('search') }}">
                 <input type="hidden" name="origin" value="{{ $origin->id }}">
                 <input type="hidden" name="destination" value="{{ $destination->id }}">
@@ -365,8 +393,10 @@
                     </div>
                 </fieldset>
 
-                <button class="btn" type="submit">Terapkan filter</button>
-                <a class="reset-link" href="{{ $resetUrl }}">Reset filter</a>
+                <div class="filter-actions">
+                    <button class="btn" type="submit">Terapkan filter</button>
+                    <a class="reset-link" href="{{ $resetUrl }}">Reset filter</a>
+                </div>
             </form>
         </aside>
 
@@ -395,6 +425,7 @@
                             @endif
                         </div>
                         <div class="muted small">
+                            {{ $trip->service_mode === 'shuttle' ? 'Shuttle' : 'Bus' }} &middot;
                             {{ $trip->layout_name }} &middot; {{ ucfirst(str_replace('_', ' ', $trip->bus_type)) }}
                         </div>
 
@@ -412,7 +443,7 @@
                             @if ($trip->distance_km)
                                 <span>{{ $trip->distance_km }} km</span>
                             @endif
-                            <span>Sisa {{ $trip->available_seats }} kursi</span>
+                            <span>Kapasitas {{ $trip->total_seats }} kursi &middot; Sisa {{ $trip->available_seats }}</span>
                         </div>
 
                         <div class="badges">
@@ -440,8 +471,20 @@
                 </article>
             @empty
                 <div class="card empty">
-                    <h2>Belum ada perjalanan</h2>
-                    <p>Ubah tanggal, hapus sebagian filter, atau pilih rute lain.</p>
+                    @if ($mode === 'shuttle')
+                        <h2>Belum ada shuttle</h2>
+                        <p>Belum ada shuttle aktif untuk rute dan tanggal ini. Coba tanggal lain atau beralih ke bus.</p>
+                        <a class="btn" href="{{ route('search', [
+                            'origin'      => $origin->id,
+                            'destination' => $destination->id,
+                            'date'        => $date,
+                            'passengers'  => $passengers,
+                            'mode'        => 'bus',
+                        ]) }}">Lihat bus</a>
+                    @else
+                        <h2>Belum ada perjalanan</h2>
+                        <p>Ubah tanggal, hapus sebagian filter, atau pilih rute lain.</p>
+                    @endif
                 </div>
             @endforelse
         </div>
@@ -450,3 +493,75 @@
     <p><a href="{{ route('home') }}#cari">&larr; Ubah pencarian</a></p>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        var panel = document.getElementById('filter-panel');
+        if (!panel) {
+            return;
+        }
+
+        var openers = Array.prototype.slice.call(document.querySelectorAll('[data-filter-open]'));
+        var closers = Array.prototype.slice.call(document.querySelectorAll('[data-filter-close]'));
+        var lastFocused = null;
+        var previousOverflow = '';
+
+        function setExpanded(expanded) {
+            openers.forEach(function (button) {
+                button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            });
+        }
+
+        function openDrawer(button) {
+            lastFocused = document.activeElement;
+            previousOverflow = document.body.style.overflow;
+            document.body.classList.add('filter-open');
+            document.body.style.overflow = 'hidden';
+            setExpanded(true);
+
+            var focusTarget = button && button.getAttribute('data-filter-focus') === 'sort'
+                ? panel.querySelector('select[name="sort"]')
+                : panel.querySelector('.filter-drawer-close');
+
+            window.setTimeout(function () {
+                if (focusTarget) {
+                    focusTarget.focus();
+                }
+            }, 220);
+        }
+
+        function closeDrawer() {
+            document.body.classList.remove('filter-open');
+            document.body.style.overflow = previousOverflow;
+            setExpanded(false);
+
+            if (lastFocused && typeof lastFocused.focus === 'function') {
+                lastFocused.focus();
+            }
+        }
+
+        openers.forEach(function (button) {
+            button.addEventListener('click', function () {
+                openDrawer(button);
+            });
+        });
+
+        closers.forEach(function (button) {
+            button.addEventListener('click', closeDrawer);
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && document.body.classList.contains('filter-open')) {
+                closeDrawer();
+            }
+        });
+
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 860 && document.body.classList.contains('filter-open')) {
+                closeDrawer();
+            }
+        });
+    })();
+</script>
+@endpush

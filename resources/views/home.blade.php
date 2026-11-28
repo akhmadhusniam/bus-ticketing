@@ -10,6 +10,7 @@
     $today = now($displayTimezone)->toDateString();
     $chosenDate = old('date', request('date', $today));
     $chosenReturn = old('return_date', request('return_date', ''));
+    $hasReturn = $chosenReturn !== '';
 
     $promos = [
         ['title' => 'Diskon akhir pekan', 'detail' => 'Potong 20% untuk pergi Jumat–Minggu.', 'code' => 'WEEKEND20'],
@@ -26,7 +27,7 @@
 
     $faqs = [
         ['q' => 'Bagaimana cara memesan tiket?', 'a' => 'Pilih asal, tujuan, tanggal, lalu bandingkan jadwal di halaman hasil. Setelah itu buka detail trip, pilih kursi, dan ikuti langkah pembayaran.'],
-        ['q' => 'Apakah bisa mencari tiket pulang pergi?', 'a' => 'Bisa. Isi tanggal pulang di kolom opsional pada pencarian. Setelah memilih tiket pergi, gunakan tombol “Cari tiket pulang” di halaman hasil.'],
+        ['q' => 'Apakah bisa mencari tiket pulang pergi?', 'a' => 'Bisa. Isi tanggal pulang di toggle 「Tambah tanggal pulang」 pada pencarian. Setelah memilih tiket pergi, gunakan tombol “Cari tiket pulang” di halaman hasil.'],
         ['q' => 'Di mana saya melihat e-tiket?', 'a' => 'Buka menu “Cek Tiket”, lalu masukkan kode booking dan email pemesan. E-tiket menampilkan kursi, jadwal, serta titik naik dan turun.'],
         ['q' => 'Apakah kode voucher bisa digabung?', 'a' => 'Satu pesanan hanya memakai satu kode voucher. Pilih kode yang memberikan potongan terbesar untuk perjalanan Anda.'],
         ['q' => 'Bagaimana jika jadwal berubah?', 'a' => 'Status perjalanan dan perubahan jadwal akan terlihat pada detail trip dan e-tiket. Simpan kode booking untuk keperluan bantuan.'],
@@ -59,8 +60,8 @@
                 <div class="alert">Belum ada data kota. Impor <code>database/seed.sql</code> terlebih dahulu.</div>
             @endif
 
-            <div class="hero-search-grid">
-                <label class="search-field">
+            <div class="hero-search-grid {{ $hasReturn ? 'has-return' : '' }}">
+                <label class="search-field field-origin">
                     <span class="field-label">Dari</span>
                     <select name="origin" id="origin" required aria-label="Kota asal">
                         <option value="">Pilih kota asal</option>
@@ -76,7 +77,7 @@
 
                 <button type="button" id="swap" class="swap" aria-label="Tukar kota asal dan tujuan" title="Tukar asal dan tujuan">&#8644;</button>
 
-                <label class="search-field">
+                <label class="search-field field-destination">
                     <span class="field-label">Ke</span>
                     <select name="destination" id="destination" required aria-label="Kota tujuan">
                         <option value="">Pilih kota tujuan</option>
@@ -90,17 +91,17 @@
                     </select>
                 </label>
 
-                <label class="search-field">
+                <label class="search-field field-date">
                     <span class="field-label">Tanggal pergi</span>
                     <input type="date" name="date" id="departure-date" value="{{ $chosenDate }}" min="{{ $today }}" required>
                 </label>
 
-                <label class="search-field">
-                    <span class="field-label">Tanggal pulang <small>(opsional)</small></span>
-                    <input type="date" name="return_date" id="return-date" value="{{ $chosenReturn }}" min="{{ $chosenDate }}">
+                <label class="search-field field-return {{ $hasReturn ? '' : 'is-collapsed' }}" id="return-field">
+                    <span class="field-label">Tanggal pulang</span>
+                    <input type="date" name="return_date" id="return-date" value="{{ $chosenReturn }}" min="{{ $chosenDate }}" @disabled(! $hasReturn)>
                 </label>
 
-                <label class="search-field search-field-narrow">
+                <label class="search-field field-passengers search-field-narrow">
                     <span class="field-label">Penumpang</span>
                     <select name="passengers" aria-label="Jumlah penumpang">
                         @for ($n = 1; $n <= 6; $n++)
@@ -113,8 +114,11 @@
             </div>
 
             <div class="search-footnote">
+                <label class="return-toggle">
+                    <input type="checkbox" id="return-toggle" {{ $hasReturn ? 'checked' : '' }}>
+                    <span>Tambah tanggal pulang</span>
+                </label>
                 <span>Waktu ditampilkan sesuai zona kota setempat ({{ $displayTimezone }}).</span>
-                <span>Tanggal pulang boleh dikosongkan untuk perjalanan sekali jalan.</span>
             </div>
         </form>
     </div>
@@ -306,6 +310,26 @@
             });
         }
 
+        var returnToggle = document.getElementById('return-toggle');
+        var returnField = document.getElementById('return-field');
+        var searchGrid = document.querySelector('.hero-search-grid');
+        if (returnToggle && returnField && back && searchGrid) {
+            var syncReturnField = function () {
+                var open = returnToggle.checked;
+                returnField.classList.toggle('is-collapsed', !open);
+                searchGrid.classList.toggle('has-return', open);
+                back.disabled = !open;
+                if (open) {
+                    back.required = true;
+                    back.min = depart ? depart.value : back.min;
+                } else {
+                    back.required = false;
+                }
+            };
+            returnToggle.addEventListener('change', syncReturnField);
+            syncReturnField();
+        }
+
         document.querySelectorAll('.copy-btn').forEach(function (button) {
             button.addEventListener('click', async function () {
                 var code = button.getAttribute('data-copy');
@@ -328,6 +352,10 @@
                     button.textContent = original;
                     button.classList.remove('copied');
                 }, 1600);
+
+                if (window.TiketkuToast) {
+                    window.TiketkuToast.show('Kode ' + code + ' tersalin.', 'success');
+                }
             });
         });
 

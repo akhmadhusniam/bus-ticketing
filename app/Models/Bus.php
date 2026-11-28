@@ -12,6 +12,7 @@ class Bus extends Model
         'bus_layout_id',
         'plate_number',
         'bus_type',
+        'service_mode',
         'amenities',
         'is_active',
     ];

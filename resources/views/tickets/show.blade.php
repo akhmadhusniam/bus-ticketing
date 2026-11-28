@@ -34,7 +34,7 @@
 @section('content')
 <section class="container page ticket-page">
     @if (session('status'))
-        <div class="alert alert-success" role="status">{{ session('status') }}</div>
+        <div class="alert alert-success" role="status" data-toast-source="success">{{ session('status') }}</div>
     @endif
 
     <div class="ticket-top">

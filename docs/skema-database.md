@@ -19,7 +19,8 @@ bookings 1─* payments
 |---|---|
 | Uang | Disimpan sebagai integer satuan terkecil + kolom `currency` (hindari float; siap multi-mata uang). |
 | Waktu | `departure_at` / `arrival_at` disimpan UTC. `cities.timezone` dipakai saat menampilkan. |
-| Kursi | `bus_layouts.seat_map` = templat; `trip_seats` = status nyata per perjalanan (dibuat saat trip dibuat). |
+| Kursi | `bus_layouts.seat_map` = templat; `trip_seats` = status nyata per perjalanan (dibuat saat trip dibuat). Invariannya: `total_seats` = jumlah entri `seat_map.seats` = jumlah `trip_seats` per trip. |
+| Moda | `buses.service_mode` (`bus`/`shuttle`) menentukan hasil pencarian. `bus_type` (`seater`/`semi_sleeper`/`sleeper`) tetap dipakai sebagai filter tipe armada. |
 | Dobel booking | `unique(trip_id, seat_label)` + `lockForUpdate()` di `SeatLockService::reserve()`. |
 | Kursi tertahan | Status `locked` + `locked_until` (15 menit); command per menit melepas yang kedaluwarsa. |
 | Guest checkout | `bookings.user_id` nullable; kontak disimpan langsung di booking. |
@@ -33,16 +34,17 @@ bookings 1─* payments
 ```json
 {
   "rows": 10,
-  "cols": 5,
+  "cols": 4,
+  "aisle_after": 2,
   "seats": [
     {"label": "1A", "row": 1, "col": 1, "deck": 1, "type": "regular"},
     {"label": "1B", "row": 1, "col": 2, "deck": 1, "type": "regular"},
-    {"label": "1C", "row": 1, "col": 4, "deck": 1, "type": "regular"},
-    {"label": "1D", "row": 1, "col": 5, "deck": 1, "type": "premium"}
+    {"label": "1C", "row": 1, "col": 3, "deck": 1, "type": "regular"},
+    {"label": "1D", "row": 1, "col": 4, "deck": 1, "type": "premium"}
   ]
 }
 ```
-Kolom yang tidak dipakai (misalnya kolom 3) otomatis menjadi lorong saat denah digambar di frontend.
+`aisle_after` menentukan gang setelah kolom tersebut; bila tidak diisi, frontend memakai `ceil(cols / 2)`. `total_seats` pada baris `bus_layouts` harus sama dengan jumlah entri `seats`.
 
 ## 4. Catatan implementasi SQL
 

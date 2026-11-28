@@ -16,7 +16,7 @@
 @section('content')
 <section class="container page">
     @if (session('error'))
-        <div class="alert" role="alert">{{ session('error') }}</div>
+        <div class="alert" role="alert" data-toast-source="error">{{ session('error') }}</div>
     @endif
 
     <p><a href="{{ $backUrl }}">&larr; Kembali ke detail perjalanan</a></p>
@@ -78,44 +78,88 @@
                 <div class="card">
                     <div class="card-heading">
                         <div>
-                            <h2>Pilih kursi</h2>
-                            <p class="muted small">Maksimal {{ $limit }} kursi per pesanan.</p>
+                            <h2 id="seat-map-title">Pilih kursi</h2>
+                            <p class="muted small">
+                                Kapasitas {{ $capacity }} kursi &middot; maksimal {{ $limit }} kursi per pesanan.
+                                @if ($priceRange)
+                                    &middot;
+                                    @if ($priceRange['min'] === $priceRange['max'])
+                                        Rp {{ number_format($priceRange['min'], 0, ',', '.') }} per kursi
+                                    @else
+                                        Rp {{ number_format($priceRange['min'], 0, ',', '.') }} &ndash;
+                                        Rp {{ number_format($priceRange['max'], 0, ',', '.') }} per kursi
+                                    @endif
+                                @endif
+                            </p>
                         </div>
-                        <span class="badge" id="seat-counter">0 terpilih</span>
+                        <span class="badge" id="seat-counter" aria-live="polite">0 dari {{ $limit }} kursi dipilih</span>
                     </div>
 
-                    <div class="seat-legend" aria-hidden="true">
-                        <span><i class="dot dot-available"></i> Tersedia</span>
-                        <span><i class="dot dot-selected"></i> Dipilih</span>
-                        <span><i class="dot dot-taken"></i> Dikunci/dibooked</span>
+                    @if ($capacity !== $layoutSeatCount)
+                        <div class="alert" role="alert">
+                            Konfigurasi kursi belum sinkron: kapasitas {{ $capacity }}, templat {{ $layoutSeatCount }} kursi.
+                        </div>
+                    @endif
+
+                    <div class="seat-legend" aria-labelledby="seat-legend-title">
+                        <span class="visually-hidden" id="seat-legend-title">Keterangan status kursi</span>
+                        <span><i class="dot dot-available" aria-hidden="true"></i><b class="legend-symbol" aria-hidden="true">○</b> Tersedia</span>
+                        <span><i class="dot dot-selected" aria-hidden="true"></i><b class="legend-symbol" aria-hidden="true">✓</b> Dipilih</span>
+                        <span><i class="dot dot-taken" aria-hidden="true"></i><b class="legend-symbol" aria-hidden="true">×</b> Dikunci/dibooked</span>
                     </div>
+                    <p class="seat-map-note muted small">Denah ilustratif; posisi kursi mengikuti konfigurasi armada.</p>
 
                     @if ($seatCount === 0)
                         <div class="alert" role="status">Semua kursi pada perjalanan ini sudah tidak tersedia.</div>
                     @else
-                        @foreach ($seatRows as $row)
-                            @php
-                                $rowSeats = collect($row)->sortBy('col');
-                            @endphp
-                            <div class="seat-deck">
-                                <div class="seat-deck-label">Dek {{ $rowSeats->first()['deck'] }}</div>
-                                <div class="seat-row" style="--seat-cols: {{ max(1, (int) $seatColumns) }}">
-                                    @foreach ($rowSeats as $item)
-                                        @php
-                                            $selectable = $item['seat'] && $item['seat']->status === 'available';
-                                            $checked = in_array($item['label'], old('seats', []), true);
-                                        @endphp
-                                        <label class="seat seat-{{ $selectable ? 'available' : 'taken' }}"
-                                               title="{{ $item['label'] }} · Rp {{ number_format($item['price'], 0, ',', '.') }}">
-                                            <input type="checkbox" name="seats[]" value="{{ $item['label'] }}"
-                                                   data-price="{{ $item['price'] }}" data-label="{{ $item['label'] }}"
-                                                   @checked($checked) @disabled(! $selectable)>
-                                            <span>{{ $item['label'] }}</span>
-                                        </label>
+                        @php
+                            $seatTracks = $aisleAfter > 0
+                                ? 'repeat('.$aisleAfter.', minmax(44px, 58px)) 22px repeat('.max(1, $seatColumns - $aisleAfter).', minmax(44px, 58px))'
+                                : 'repeat('.$seatColumns.', minmax(44px, 58px))';
+                        @endphp
+                        <div class="bus-map" role="group" aria-labelledby="seat-map-title"
+                             style="--seat-tracks: {{ $seatTracks }}">
+                            <div class="bus-front" aria-hidden="true">Depan bus</div>
+
+                            @foreach ($seatMap->decks() as $deck)
+                                <section class="seat-deck" aria-labelledby="deck-{{ $deck['number'] }}">
+                                    <h3 class="seat-deck-label" id="deck-{{ $deck['number'] }}">{{ $deck['label'] }}</h3>
+
+                                    @foreach ($deck['rows'] as $row)
+                                        <div class="seat-row" role="group" aria-label="Baris {{ $row['number'] }}">
+                                            @foreach ($row['seats'] as $item)
+                                                @php
+                                                    $label = (string) $item['label'];
+                                                    $price = (int) $item['price'];
+                                                    $checked = in_array($label, old('seats', []), true);
+                                                    $description = 'Kursi '.$label.', '.$item['state_label']
+                                                        .', Rp '.number_format($price, 0, ',', '.')
+                                                        .', baris '.$item['row'].', kolom '.$item['col'];
+                                                @endphp
+                                                <label class="seat seat-{{ $item['selectable'] ? 'available' : 'taken' }} seat-{{ $item['type'] }}"
+                                                       data-row="{{ $item['row'] }}" data-col="{{ $item['col'] }}"
+                                                       data-deck="{{ $item['deck'] }}" data-type="{{ $item['type'] }}"
+                                                       title="{{ $label }} &middot; {{ $item['state_label'] }} &middot; Rp {{ number_format($price, 0, ',', '.') }}">
+                                                    <input type="checkbox" name="seats[]" value="{{ $label }}"
+                                                           data-price="{{ $price }}" data-label="{{ $label }}"
+                                                           data-status="{{ $item['status'] }}"
+                                                           aria-label="{{ $description }}"
+                                                           @checked($checked) @disabled(! $item['selectable'])>
+                                                    <span class="seat-symbol" aria-hidden="true">{{ $item['symbol'] }}</span>
+                                                    <span class="seat-label" aria-hidden="true">{{ $label }}</span>
+                                                </label>
+
+                                                @if ($aisleAfter > 0 && (int) $item['col'] === $aisleAfter)
+                                                    <span class="bus-aisle" aria-hidden="true"></span>
+                                                @endif
+                                            @endforeach
+                                        </div>
                                     @endforeach
-                                </div>
-                            </div>
-                        @endforeach
+                                </section>
+                            @endforeach
+
+                            <div class="bus-rear" aria-hidden="true">Belakang bus</div>
+                        </div>
                     @endif
                 </div>
 
@@ -207,7 +251,7 @@
             <aside class="sticky-summary">
                 <div class="card">
                     <h2>Ringkasan pesanan</h2>
-                    <div class="summary-seats" id="selected-seats">
+                    <div class="summary-seats" id="selected-seats" aria-live="polite">
                         <span class="muted small">Belum ada kursi dipilih.</span>
                     </div>
                     <dl class="info-list">
@@ -243,20 +287,57 @@
         const limit = {{ (int) $limit }};
 
         const money = (value) => 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+        const warn = (message) => {
+            if (window.TiketkuToast) {
+                window.TiketkuToast.show(message, 'warning');
+            }
+        };
 
         const refresh = () => {
             const selected = checkboxes.filter((box) => box.checked);
-            counter.textContent = selected.length + ' terpilih';
-            list.innerHTML = selected.length
-                ? selected.map((box) => '<span class="badge">' + box.dataset.label + '</span>').join(' ')
-                : '<span class="muted small">Belum ada kursi dipilih.</span>';
+
+            counter.textContent = selected.length + ' dari ' + limit + ' kursi dipilih';
+            list.replaceChildren();
+
+            if (selected.length === 0) {
+                const empty = document.createElement('span');
+                empty.className = 'muted small';
+                empty.textContent = 'Belum ada kursi dipilih.';
+                list.appendChild(empty);
+            } else {
+                selected.forEach((box) => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.textContent = box.dataset.label + ' · ' + money(Number(box.dataset.price));
+                    list.appendChild(badge);
+                });
+            }
+
             total.textContent = money(selected.reduce((sum, box) => sum + Number(box.dataset.price), 0));
+
             checkboxes.forEach((box) => {
-                if (!box.checked) box.disabled = selected.length >= limit;
+                const limited = !box.checked && selected.length >= limit;
+                box.setAttribute('aria-disabled', limited ? 'true' : 'false');
+                box.closest('.seat')?.classList.toggle('is-limited', limited);
             });
         };
 
-        checkboxes.forEach((box) => box.addEventListener('change', refresh));
+        checkboxes.filter((box) => box.checked).slice(limit).forEach((box) => { box.checked = false; });
+
+        checkboxes.forEach((box) => {
+            box.setAttribute('aria-disabled', 'false');
+            box.addEventListener('change', () => {
+                const selected = checkboxes.filter((item) => item.checked);
+
+                if (selected.length > limit) {
+                    box.checked = false;
+                    warn('Maksimal ' + limit + ' kursi per pesanan.');
+                }
+
+                refresh();
+            });
+        });
+
         refresh();
     })();
 </script>

@@ -21,16 +21,17 @@ class TripDetailController extends Controller
             'trip'           => $trip,
             'stops'          => $trip->route->stops,
             'availableSeats' => $trip->seats->where('status', 'available')->count(),
+            'capacity'       => (int) $trip->bus->layout->total_seats,
             'duration'       => (int) $trip->route->duration_minutes,
             'distance'       => $trip->route->distance_km,
             'amenities'      => (array) $trip->bus->amenities,
             'backUrl'        => $this->backUrl($trip),
-            'bookingUrl'     => route('booking.show', ['trip' => $trip->id] + $this->searchParams()),
+            'bookingUrl'     => route('booking.show', ['trip' => $trip->id] + $this->searchParams($trip)),
         ]);
     }
 
     /** @return array<string, mixed> */
-    private function searchParams(): array
+    private function searchParams(Trip $trip): array
     {
         $params = [];
 
@@ -42,12 +43,14 @@ class TripDetailController extends Controller
             }
         }
 
+        $params['mode'] = $trip->bus->service_mode;
+
         return $params;
     }
 
     private function backUrl(Trip $trip): string
     {
-        $params = $this->searchParams();
+        $params = $this->searchParams($trip);
 
         if (isset($params['origin'], $params['destination'], $params['date'])
             && filter_var($params['origin'], FILTER_VALIDATE_INT)
